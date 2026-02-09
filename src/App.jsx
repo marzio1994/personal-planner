@@ -1047,14 +1047,14 @@ function TaskRow({
             </button>
           </div>
           <button
-            className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="hidden sm:inline-flex p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => setEdit(true)}
             title="Edit"
           >
             <Edit3 className="w-4 h-4" />
           </button>
           <button
-            className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="hidden sm:inline-flex p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => deleteTask(task.id)}
             title="Delete"
           >
@@ -1219,14 +1219,14 @@ function SubtaskRow({ parent, task, updateTask, deleteTask, selectedISO }) {
         </div>
         <div className="flex items-center gap-1">
           <button
-            className="p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="hidden sm:inline-flex p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => setEdit(true)}
             title="Edit"
           >
             <Edit3 className="w-3 h-3" />
           </button>
           <button
-            className="p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="hidden sm:inline-flex p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => deleteTask(task.id)}
             title="Delete subtask"
           >
