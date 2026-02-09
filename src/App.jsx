@@ -206,15 +206,15 @@ export default function App() {
   return (
     <div className="min-h-screen font-sans bg-gradient-to-br from-neutral-50 via-white to-slate-50 text-neutral-900 dark:from-neutral-900 dark:via-neutral-950 dark:to-black dark:text-neutral-100">
       <header className="sticky top-0 z-10 bg-white/70 dark:bg-black/40 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
-        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-xl font-semibold">Personal Planner</span>
-            <nav className="flex gap-2">
+            <nav className="flex flex-wrap gap-2">
               <button
                 onClick={() =>
                   setRoute({ page: "todo", sub: route.sub, view: route.view })
                 }
-                className={`px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 transition ${
+                className={`px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 transition ${
                   route.page === "todo"
                     ? "bg-neutral-900 text-white border-neutral-900 shadow dark:bg-white dark:text-black dark:border-white"
                     : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -226,7 +226,7 @@ export default function App() {
                 onClick={() =>
                   setRoute({ page: "calendar", sub: route.sub, view: route.view })
                 }
-                className={`px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 transition ${
+                className={`px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 transition ${
                   route.page === "calendar"
                     ? "bg-neutral-900 text-white border-neutral-900 shadow dark:bg-white dark:text-black dark:border-white"
                     : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -237,10 +237,10 @@ export default function App() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowModal(true)}
-              className="px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 transition bg-neutral-900 text-white dark:bg-white dark:text-black"
+              className="hidden sm:flex px-3 py-1.5 rounded-2xl border text-sm items-center gap-2 transition bg-neutral-900 text-white dark:bg-white dark:text-black"
             >
               <Plus className="w-4 h-4" /> Add Task
             </button>
@@ -249,7 +249,7 @@ export default function App() {
               onClick={() =>
                 setRoute({ page: route.page, sub: "routine", view: route.view })
               }
-              className={`px-3 py-1.5 rounded-2xl border text-sm transition ${
+              className={`px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border transition ${
                 route.sub === "routine"
                   ? "bg-neutral-200 dark:bg-neutral-800"
                   : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -261,7 +261,7 @@ export default function App() {
               onClick={() =>
                 setRoute({ page: route.page, sub: "onetime", view: route.view })
               }
-              className={`px-3 py-1.5 rounded-2xl border text-sm transition ${
+              className={`px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border transition ${
                 route.sub === "onetime"
                   ? "bg-neutral-200 dark:bg-neutral-800"
                   : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -271,7 +271,7 @@ export default function App() {
             </button>
 
             {route.page === "calendar" && (
-              <div className="ml-2 flex items-center gap-1">
+              <div className="ml-0 sm:ml-2 flex items-center gap-1">
                 <button
                   onClick={() => setRoute((r) => ({ ...r, view: "month" }))}
                   className={`p-2 rounded-xl border ${
@@ -305,18 +305,18 @@ export default function App() {
             {/* Import / Export */}
             <button
               onClick={exportData}
-              className="px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               title="Export data"
             >
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
             </button>
 
             <label
               htmlFor="importFile"
-              className="px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
               title="Import data"
             >
-              <Upload className="w-4 h-4" /> Import
+              <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import</span>
               <input
                 id="importFile"
                 type="file"
@@ -337,17 +337,19 @@ export default function App() {
                   return ns;
                 })
               }
-              className="ml-2 px-3 py-1.5 rounded-2xl border text-sm flex items-center gap-2 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="ml-0 sm:ml-2 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
               title="Toggle dark mode"
             >
               {state.theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              {state.theme === "dark" ? "Light" : "Dark"}
+              <span className="hidden sm:inline">
+                {state.theme === "dark" ? "Light" : "Dark"}
+              </span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4">
+      <main className="max-w-6xl mx-auto p-3 sm:p-4 pb-20 sm:pb-4">
         {route.page === "todo" ? (
           route.sub === "routine" ? (
             <RoutineTodo
@@ -382,6 +384,41 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Mobile FAB */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="sm:hidden fixed right-4 bottom-20 z-20 w-14 h-14 rounded-full bg-neutral-900 text-white shadow-lg flex items-center justify-center"
+        aria-label="Add Task"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
+      {/* Mobile bottom nav */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20 border-t bg-white/90 dark:bg-black/70 backdrop-blur">
+        <div className="grid grid-cols-2 gap-2 p-2">
+          <button
+            onClick={() => setRoute({ page: "todo", sub: route.sub, view: route.view })}
+            className={`py-2 rounded-xl text-sm flex items-center justify-center gap-2 border ${
+              route.page === "todo"
+                ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white"
+                : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            <ListTodo className="w-4 h-4" /> To-Do
+          </button>
+          <button
+            onClick={() => setRoute({ page: "calendar", sub: route.sub, view: route.view })}
+            className={`py-2 rounded-xl text-sm flex items-center justify-center gap-2 border ${
+              route.page === "calendar"
+                ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white"
+                : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            <CalendarIcon className="w-4 h-4" /> Calendar
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
@@ -598,18 +635,18 @@ function RoutineTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Layers className="w-5 h-5" /> Routine Tasks
         </h2>
 
         {/* Day chips: All + Sun..Sat */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto">
           {["All", ...dayLabels].map((label, i) => (
             <button
               key={label}
               onClick={() => setSelectedDay(i - 1)} // -1 = All, 0..6 = Sun..Sat
-              className={`px-3 py-1.5 rounded-2xl border text-sm ${
+              className={`shrink-0 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border ${
                 selectedDay === i - 1
                   ? "bg-neutral-200 dark:bg-neutral-800"
                   : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -751,8 +788,8 @@ function TaskRow({ task, addSubtask, updateTask, deleteTask, isRoutine, selected
       : !!task.completed;
 
   return (
-    <li className="p-3">
-      <div className="flex items-start gap-3">
+    <li className="p-2 sm:p-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         <button onClick={() => setOpen((o) => !o)} className="mt-1">
           {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
@@ -810,7 +847,7 @@ function TaskRow({ task, addSubtask, updateTask, deleteTask, isRoutine, selected
 
           {/* Subtasks */}
           {open && (
-            <div className="mt-2 ml-6">
+            <div className="mt-2 ml-4 sm:ml-6">
               {(task.subtasks || []).length > 0 ? (
                 <ul className="space-y-1">
                   {task.subtasks.map((st) => (
@@ -939,7 +976,7 @@ function SubtaskRow({ parent, task, updateTask, deleteTask, selectedISO }) {
 
   return (
     <li>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2 sm:gap-3">
         <button onClick={() => setOpen((o) => !o)} className="mt-0.5">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </button>
@@ -982,7 +1019,7 @@ function SubtaskRow({ parent, task, updateTask, deleteTask, selectedISO }) {
           )}
 
           {open && (
-            <div className="mt-1 ml-6">
+            <div className="mt-1 ml-4 sm:ml-6">
               {(task.subtasks || []).length > 0 ? (
                 <ul className="space-y-1">
                   {task.subtasks.map((st) => (
@@ -1259,55 +1296,59 @@ function CalHeader({ refDate, view, onPrev, onNext, title }) {
 
 function MonthGrid({ days, renderDay }) {
   return (
-    <div className="grid grid-cols-7 gap-2 mt-2">
-      {dayLabels.map((d) => (
-        <div key={d} className="text-xs text-center text-neutral-500 dark:text-neutral-400">
-          {d}
-        </div>
-      ))}
-      {days.map(({ iso, inMonth }) => (
-        <div
-          key={iso}
-          className={`min-h-[120px] p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition ${
-            inMonth ? "" : "opacity-40"
-          }`}
-        >
+    <div className="mt-2 overflow-x-auto">
+      <div className="grid grid-cols-7 gap-2 min-w-[640px]">
+        {dayLabels.map((d) => (
+          <div key={d} className="text-[10px] sm:text-xs text-center text-neutral-500 dark:text-neutral-400">
+            {d}
+          </div>
+        ))}
+        {days.map(({ iso, inMonth }) => (
           <div
-            className={`text-xs mb-1 font-medium inline-flex items-center justify-center w-6 h-6 rounded-full ${
-              iso === todayISO()
-                ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
-                : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+            key={iso}
+            className={`min-h-[96px] sm:min-h-[120px] p-1.5 sm:p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition ${
+              inMonth ? "" : "opacity-40"
             }`}
           >
-            {iso.slice(8, 10)}
+            <div
+              className={`text-[10px] sm:text-xs mb-1 font-medium inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full ${
+                iso === todayISO()
+                  ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
+                  : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+              }`}
+            >
+              {iso.slice(8, 10)}
+            </div>
+            {renderDay(iso)}
           </div>
-          {renderDay(iso)}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
 function WeekGrid({ days, renderDay }) {
   return (
-    <div className="grid grid-cols-7 gap-2 mt-2">
-      {days.map((iso) => (
-        <div
-          key={iso}
-          className="min-h-[160px] p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition"
-        >
+    <div className="mt-2 overflow-x-auto">
+      <div className="grid grid-cols-7 gap-2 min-w-[640px]">
+        {days.map((iso) => (
           <div
-            className={`text-xs mb-1 font-medium inline-flex items-center justify-center w-8 h-8 rounded-full ${
-              iso === todayISO()
-                ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
-                : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
-            }`}
+            key={iso}
+            className="min-h-[120px] sm:min-h-[160px] p-1.5 sm:p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition"
           >
-            {new Date(iso).toLocaleDateString(undefined, { weekday: "short" })}
+            <div
+              className={`text-[10px] sm:text-xs mb-1 font-medium inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full ${
+                iso === todayISO()
+                  ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
+                  : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+              }`}
+            >
+              {new Date(iso).toLocaleDateString(undefined, { weekday: "short" })}
+            </div>
+            {renderDay(iso)}
           </div>
-          {renderDay(iso)}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -1356,4 +1397,3 @@ function buildWeekDays(refDate) {
   for (let i = 0; i < 7; i++) out.push(fmtISO(addDays(start, i)));
   return out;
 }
-
