@@ -138,9 +138,20 @@ const WORKOUTS_V1 = [
 const DEFAULT_ROUTINES = [
   mkRoutine("Wake up early"),
   mkRoutine("Have a healthy breakfast"),
-  mkRoutine("Practice Babbel"),
+  mkRoutine("Practice French", [
+    mkSub("Review"),
+    mkSub("Lesson"),
+    mkSub("Book"),
+    mkSub("Song"),
+    mkSub("Introduction"),
+  ]),
   mkRoutine("Have a healthy lunch"),
-  mkRoutine("Study chess"),
+  mkRoutine("Study chess", [
+    mkSub("10 puzzles"),
+    mkSub("Game + analysis"),
+    mkSub("Vision"),
+    mkSub("Pawn structure"),
+  ]),
   mkRoutine("Study physics"),
   mkRoutine("Work on thesis"),
   mkRoutine("Have a healthy dinner"),
@@ -151,7 +162,7 @@ const DEFAULT_ROUTINES = [
 const DAILY_HABITS = [
   "Wake up early",
   "Have a healthy breakfast",
-  "Practice Babbel",
+  "Practice French",
   "Have a healthy lunch",
   "Study chess",
   "Study physics",
@@ -159,6 +170,22 @@ const DAILY_HABITS = [
   "Have a healthy dinner",
   "Read before bed",
 ];
+
+const HABIT_DETAILS_V1 = {
+  "Practice French": [
+    "Review",
+    "Lesson",
+    "Book",
+    "Song",
+    "Introduction",
+  ],
+  "Study chess": [
+    "10 puzzles",
+    "Game + analysis",
+    "Vision",
+    "Pawn structure",
+  ],
+};
 
 const ensureHabits = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
@@ -171,6 +198,27 @@ const ensureHabits = (state) => {
     ...state,
     tasks: [...state.tasks, ...additions],
     meta: { ...(state.meta || {}), habitsV1: true },
+  };
+};
+
+const ensureHabitDetails = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta && state.meta.habitsV2) return state;
+
+  const renameMap = new Map([["Practice Babbel", "Practice French"]]);
+
+  const nextTasks = state.tasks.map((t) => {
+    const title = renameMap.get(t.title) || t.title;
+    const details = HABIT_DETAILS_V1[title];
+    if (!details) return { ...t, title };
+    const subs = details.map((s) => mkSub(s));
+    return { ...t, title, subtasks: subs };
+  });
+
+  return {
+    ...state,
+    tasks: nextTasks,
+    meta: { ...(state.meta || {}), habitsV2: true },
   };
 };
 
@@ -202,17 +250,17 @@ const ensureWorkouts = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureHabits(ensureWorkouts(JSON.parse(raw)));
+    if (raw) return ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, habitsV1: true },
+      meta: { workoutPlanV2: true, habitsV1: true, habitsV2: true },
     };
   } catch {
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, habitsV1: true },
+      meta: { workoutPlanV2: true, habitsV1: true, habitsV2: true },
     };
   }
 };
