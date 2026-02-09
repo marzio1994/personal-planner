@@ -150,20 +150,26 @@ const DEFAULT_ROUTINES = [
 
 const ensureWorkouts = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
-  if (state.meta && state.meta.workoutPlanV1) return state;
-  const filtered = state.tasks.filter(
-    (t) =>
-      ![
-        "Workout A (Mon) — Feet & calves",
-        "Workout B (Tue) — Legs I",
-        "Workout C (Thu) — Legs II + upper prep",
-        "Workout D (Sat) — Upper + abs",
-      ].includes(t.title)
-  );
+  const existingSport = state.tasks.find((t) => t.title === "Sport (Full routine)");
+  const needsReplace =
+    !state.meta?.workoutPlanV2 ||
+    (existingSport && (!Array.isArray(existingSport.subtasks) || existingSport.subtasks.length === 0));
+  if (!needsReplace) return state;
+
+  const replaceTitles = new Set([
+    "Workout A (Mon) — Feet & calves",
+    "Workout B (Tue) — Legs I",
+    "Workout C (Thu) — Legs II + upper prep",
+    "Workout D (Sat) — Upper + abs",
+    "Sport (Full routine)",
+  ]);
+
+  const filtered = state.tasks.filter((t) => !replaceTitles.has(t.title));
+
   return {
     ...state,
     tasks: [...filtered, ...WORKOUTS_V1],
-    meta: { ...(state.meta || {}), workoutPlanV1: true },
+    meta: { ...(state.meta || {}), workoutPlanV2: true },
   };
 };
 
@@ -171,9 +177,9 @@ const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return ensureWorkouts(JSON.parse(raw));
-    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV1: true } };
+    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV2: true } };
   } catch {
-    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV1: true } };
+    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV2: true } };
   }
 };
 
