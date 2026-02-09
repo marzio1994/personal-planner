@@ -69,13 +69,99 @@ const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // --- Storage / initial state ---
 const STORAGE_KEY = "personal_tasks_calendar_app_v1";
+const DAILY_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const mkRoutine = (title, subtasks = [], days = DAILY_DAYS) => ({
+  id: uid(),
+  title,
+  type: "routine",
+  daysOfWeek: days,
+  subtasks,
+  completed: false,
+  history: [],
+});
+const mkSub = (title, subtasks = []) => ({
+  id: uid(),
+  title,
+  type: "routine",
+  subtasks,
+  completed: false,
+  history: [],
+});
+
+const WORKOUTS_V1 = [
+  mkRoutine(
+    "Sport (Full routine)",
+    [
+      mkSub("Feet massage"),
+      mkSub("Splay with supination"),
+      mkSub("Splay with supination + elastic band"),
+      mkSub("Calf raises"),
+      mkSub("Soleus calf raises"),
+      mkSub("Tibialis anterior"),
+      mkSub("Seiza sitting"),
+      mkSub("90/90"),
+      mkSub("Hip airplane"),
+      mkSub("Single-leg deadlift"),
+      mkSub("Lunges"),
+      mkSub("Sumo squat"),
+      mkSub("Step squat"),
+      mkSub("Frog pose"),
+      mkSub("Shoulder warm-up"),
+      mkSub("Rotator cuff"),
+      mkSub("Biceps"),
+      mkSub("Triceps"),
+      mkSub("Wrist & fingers"),
+      mkSub("Upper, mid & lower traps"),
+      mkSub("Upper, mid & lower pecs"),
+      mkSub("Diaphragmatic breathing"),
+      mkSub("Dead bugs"),
+      mkSub("Bird dog"),
+      mkSub("Pallof press"),
+      mkSub("Side plank"),
+    ],
+    [1, 2, 4, 6]
+  ),
+];
+
+const DEFAULT_ROUTINES = [
+  mkRoutine("Wake up early"),
+  mkRoutine("Have a healthy breakfast"),
+  mkRoutine("Practice Babbel"),
+  mkRoutine("Have a healthy lunch"),
+  mkRoutine("Study chess"),
+  mkRoutine("Study physics"),
+  mkRoutine("Work on thesis"),
+  mkRoutine("Have a healthy dinner"),
+  mkRoutine("Read before bed"),
+  ...WORKOUTS_V1,
+];
+
+const ensureWorkouts = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta && state.meta.workoutPlanV1) return state;
+  const filtered = state.tasks.filter(
+    (t) =>
+      ![
+        "Workout A (Mon) — Feet & calves",
+        "Workout B (Tue) — Legs I",
+        "Workout C (Thu) — Legs II + upper prep",
+        "Workout D (Sat) — Upper + abs",
+      ].includes(t.title)
+  );
+  return {
+    ...state,
+    tasks: [...filtered, ...WORKOUTS_V1],
+    meta: { ...(state.meta || {}), workoutPlanV1: true },
+  };
+};
+
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-    return { tasks: [], theme: "light" };
+    if (raw) return ensureWorkouts(JSON.parse(raw));
+    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV1: true } };
   } catch {
-    return { tasks: [], theme: "light" };
+    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV1: true } };
   }
 };
 
