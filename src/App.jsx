@@ -148,6 +148,32 @@ const DEFAULT_ROUTINES = [
   ...WORKOUTS_V1,
 ];
 
+const DAILY_HABITS = [
+  "Wake up early",
+  "Have a healthy breakfast",
+  "Practice Babbel",
+  "Have a healthy lunch",
+  "Study chess",
+  "Study physics",
+  "Work on thesis",
+  "Have a healthy dinner",
+  "Read before bed",
+];
+
+const ensureHabits = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta && state.meta.habitsV1) return state;
+  const existing = new Set(state.tasks.map((t) => t.title));
+  const additions = DAILY_HABITS.filter((t) => !existing.has(t)).map((t) =>
+    mkRoutine(t)
+  );
+  return {
+    ...state,
+    tasks: [...state.tasks, ...additions],
+    meta: { ...(state.meta || {}), habitsV1: true },
+  };
+};
+
 const ensureWorkouts = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   const existingSport = state.tasks.find((t) => t.title === "Sport (Full routine)");
@@ -176,10 +202,18 @@ const ensureWorkouts = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureWorkouts(JSON.parse(raw));
-    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV2: true } };
+    if (raw) return ensureHabits(ensureWorkouts(JSON.parse(raw)));
+    return {
+      tasks: DEFAULT_ROUTINES,
+      theme: "light",
+      meta: { workoutPlanV2: true, habitsV1: true },
+    };
   } catch {
-    return { tasks: DEFAULT_ROUTINES, theme: "light", meta: { workoutPlanV2: true } };
+    return {
+      tasks: DEFAULT_ROUTINES,
+      theme: "light",
+      meta: { workoutPlanV2: true, habitsV1: true },
+    };
   }
 };
 
