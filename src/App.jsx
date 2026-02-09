@@ -6,6 +6,8 @@ import {
   ListTodo,
   Plus,
   Trash2,
+  ArrowUp,
+  ArrowDown,
   ChevronDown,
   ChevronRight,
   Layers,
@@ -159,6 +161,30 @@ export default function App() {
 
   const deleteTask = (id) =>
     setState((s) => ({ ...s, tasks: removeTaskById(s.tasks, id) }));
+
+  const moveTaskInList = (orderedIds, id, dir) =>
+    setState((s) => {
+      const idx = orderedIds.indexOf(id);
+      if (idx < 0) return s;
+      const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= orderedIds.length) return s;
+
+      const newOrder = [...orderedIds];
+      [newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]];
+
+      const groupSet = new Set(orderedIds);
+      const groupMap = new Map(
+        s.tasks.filter((t) => groupSet.has(t.id)).map((t) => [t.id, t])
+      );
+      const newGroupList = newOrder.map((tid) => groupMap.get(tid)).filter(Boolean);
+      let gi = 0;
+
+      const nextTasks = s.tasks.map((t) =>
+        groupSet.has(t.id) ? newGroupList[gi++] : t
+      );
+
+      return { ...s, tasks: nextTasks };
+    });
 
   const routineTasks = useMemo(
     () => state.tasks.filter((t) => t.type === "routine"),
@@ -354,18 +380,18 @@ export default function App() {
           route.sub === "routine" ? (
             <RoutineTodo
               tasks={routineTasks}
-              addTask={addTask}
               addSubtask={addSubtask}
               updateTask={updateTask}
               deleteTask={deleteTask}
+              moveTaskInList={moveTaskInList}
             />
           ) : (
             <OneTimeTodo
               tasks={onetimeTasks}
-              addTask={addTask}
               addSubtask={addSubtask}
               updateTask={updateTask}
               deleteTask={deleteTask}
+              moveTaskInList={moveTaskInList}
             />
           )
         ) : route.sub === "routine" ? (
@@ -618,7 +644,7 @@ function AddTaskModal({ onClose, onCreate }) {
 
 /* ================== To-Do ================== */
 
-function RoutineTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
+function RoutineTodo({ tasks, addSubtask, updateTask, deleteTask, moveTaskInList }) {
   // Selected day filter: -1 = All, 0..6 = Sun..Sat (default today)
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [anchor] = useState(new Date()); // current week anchor
@@ -660,11 +686,11 @@ function RoutineTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
 
       <TaskList
         tasks={filtered}
-        isRoutine
         selectedISO={selectedISO}
         addSubtask={addSubtask}
         updateTask={updateTask}
         deleteTask={deleteTask}
+        onMove={(id, dir) => moveTaskInList(filtered.map((t) => t.id), id, dir)}
       />
 
       {filtered.length === 0 && (
@@ -678,7 +704,7 @@ function RoutineTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
   );
 }
 
-function OneTimeTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
+function OneTimeTodo({ tasks, addSubtask, updateTask, deleteTask, moveTaskInList }) {
   const grouped = useMemo(
     () => ({
       UI: tasks.filter((t) => t.eisenhower === "UI"),
@@ -709,6 +735,7 @@ function OneTimeTodo({ tasks, addTask, addSubtask, updateTask, deleteTask }) {
               addSubtask={addSubtask}
               updateTask={updateTask}
               deleteTask={deleteTask}
+              onMove={(id, dir) => moveTaskInList(list.map((t) => t.id), id, dir)}
             />
           </div>
         ))}
@@ -722,29 +749,40 @@ function TaskList({
   addSubtask,
   updateTask,
   deleteTask,
-  isRoutine = false,
+  onMove,
   selectedISO = todayISO(),
 }) {
   if (!tasks.length)
     return <div className="p-4 text-sm text-neutral-500">No tasks yet.</div>;
   return (
     <ul className="divide-y dark:divide-neutral-800">
-      {tasks.map((t) => (
+      {tasks.map((t, idx) => (
         <TaskRow
           key={t.id}
           task={t}
           addSubtask={addSubtask}
           updateTask={updateTask}
           deleteTask={deleteTask}
-          isRoutine={isRoutine}
           selectedISO={selectedISO}
+          canMoveUp={idx > 0}
+          canMoveDown={idx < tasks.length - 1}
+          onMove={(dir) => onMove && onMove(t.id, dir)}
         />
       ))}
     </ul>
   );
 }
 
-function TaskRow({ task, addSubtask, updateTask, deleteTask, isRoutine, selectedISO }) {
+function TaskRow({
+  task,
+  addSubtask,
+  updateTask,
+  deleteTask,
+  selectedISO,
+  canMoveUp = false,
+  canMoveDown = false,
+  onMove,
+}) {
   const [open, setOpen] = useState(false); // collapsed by default
   const [adding, setAdding] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -884,6 +922,26 @@ function TaskRow({ task, addSubtask, updateTask, deleteTask, isRoutine, selected
           )}
         </div>
         <div className="flex items-center gap-1">
+          <div className="flex flex-col">
+            <button
+              className={`p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                canMoveUp ? "" : "opacity-40 cursor-not-allowed"
+              }`}
+              onClick={() => canMoveUp && onMove && onMove("up")}
+              title="Move up"
+            >
+              <ArrowUp className="w-3 h-3" />
+            </button>
+            <button
+              className={`p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                canMoveDown ? "" : "opacity-40 cursor-not-allowed"
+              }`}
+              onClick={() => canMoveDown && onMove && onMove("down")}
+              title="Move down"
+            >
+              <ArrowDown className="w-3 h-3" />
+            </button>
+          </div>
           <button
             className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => setEdit(true)}
