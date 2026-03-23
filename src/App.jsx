@@ -88,52 +88,51 @@ const mkSub = (title, subtasks = []) => ({
   history: [],
 });
 
-const WORKOUTS_V1 = [
-  mkRoutine(
-    "Sport (Full routine)",
-    [
-      mkSub("Calves & feet", [
-        mkSub("Feet massage"),
-        mkSub("Splay with supination"),
-        mkSub("Splay with supination + elastic band"),
-        mkSub("Calf raises"),
-        mkSub("Soleus calf raises"),
-        mkSub("Tibialis anterior"),
-        mkSub("Seiza sitting"),
-      ]),
-      mkSub("Legs", [
-        mkSub("90/90"),
-        mkSub("Hip airplane"),
-        mkSub("Single-leg deadlift"),
-        mkSub("Lunges"),
-        mkSub("Sumo squat"),
-        mkSub("Step squat"),
-        mkSub("Frog pose"),
-      ]),
-      mkSub("Upper body", [
-        mkSub("Shoulder warm-up"),
-        mkSub("Rotator cuff"),
-        mkSub("Biceps"),
-        mkSub("Triceps"),
-        mkSub("Wrist & fingers"),
-        mkSub("Upper traps"),
-        mkSub("Mid traps"),
-        mkSub("Lower traps"),
-        mkSub("Upper pecs"),
-        mkSub("Mid pecs"),
-        mkSub("Lower pecs"),
-      ]),
-      mkSub("Abs", [
-        mkSub("Diaphragmatic breathing"),
-        mkSub("Dead bugs"),
-        mkSub("Bird dog"),
-        mkSub("Pallof press"),
-        mkSub("Side plank"),
-      ]),
-    ],
-    [1, 2, 4, 6]
-  ),
-];
+const MOBILITY_V1 = mkRoutine("Mobility", [
+  mkSub("Diaphragmatic breathing"),
+  mkSub("Glute bridges"),
+  mkSub("Dead bugs"),
+  mkSub("Seiza sitting"),
+  mkSub("Seiza sitting 2"),
+  mkSub("Cat cows"),
+  mkSub("Bird dog"),
+  mkSub("Plank"),
+  mkSub("Side plank"),
+  mkSub("Hip flexor"),
+  mkSub("Frog pose"),
+  mkSub("Frog pose 2"),
+  mkSub("90/90"),
+  mkSub("Hip airplane"),
+  mkSub("Calf raises"),
+  mkSub("Sumo squat"),
+  mkSub("Hamstrings"),
+  mkSub("Soleus calf raises"),
+  mkSub("Pan cakes"),
+  mkSub("Tibialis posterior"),
+  mkSub("Tibialis anterior"),
+  mkSub("Slow walk"),
+]);
+
+const WORKOUT_V1 = mkRoutine("Workout", [
+  mkSub("Shoulder warm-up"),
+  mkSub("Rotator cuff"),
+  mkSub("Lunges"),
+  mkSub("Wrist"),
+  mkSub("Forearms"),
+  mkSub("Face pull"),
+  mkSub("Deadlift"),
+  mkSub("Lower traps"),
+  mkSub("Lats"),
+  mkSub("Step squat"),
+  mkSub("Pecs"),
+  mkSub("Pistol squat"),
+  mkSub("Delts"),
+  mkSub("Cossack squat"),
+  mkSub("Biceps"),
+  mkSub("Triceps"),
+]);
+
+const WORKOUTS_V2 = [MOBILITY_V1, WORKOUT_V1];
 
 const DEFAULT_ROUTINES = [
   mkRoutine("Wake up early"),
@@ -156,7 +155,7 @@ const DEFAULT_ROUTINES = [
   mkRoutine("Work on thesis"),
   mkRoutine("Have a healthy dinner"),
   mkRoutine("Read before bed"),
-  ...WORKOUTS_V1,
+  ...WORKOUTS_V2,
 ];
 
 const DAILY_HABITS = [
@@ -224,11 +223,7 @@ const ensureHabitDetails = (state) => {
 
 const ensureWorkouts = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
-  const existingSport = state.tasks.find((t) => t.title === "Sport (Full routine)");
-  const needsReplace =
-    !state.meta?.workoutPlanV2 ||
-    (existingSport && (!Array.isArray(existingSport.subtasks) || existingSport.subtasks.length === 0));
-  if (!needsReplace) return state;
+  if (state.meta?.workoutPlanV3) return state;
 
   const replaceTitles = new Set([
     "Workout A (Mon) — Feet & calves",
@@ -236,14 +231,16 @@ const ensureWorkouts = (state) => {
     "Workout C (Thu) — Legs II + upper prep",
     "Workout D (Sat) — Upper + abs",
     "Sport (Full routine)",
+    "Mobility",
+    "Workout",
   ]);
 
   const filtered = state.tasks.filter((t) => !replaceTitles.has(t.title));
 
   return {
     ...state,
-    tasks: [...filtered, ...WORKOUTS_V1],
-    meta: { ...(state.meta || {}), workoutPlanV2: true },
+    tasks: [...filtered, ...WORKOUTS_V2],
+    meta: { ...(state.meta || {}), workoutPlanV2: true, workoutPlanV3: true },
   };
 };
 
@@ -254,13 +251,13 @@ const loadState = () => {
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, habitsV1: true, habitsV2: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true },
     };
   } catch {
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, habitsV1: true, habitsV2: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true },
     };
   }
 };
