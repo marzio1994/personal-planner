@@ -155,6 +155,8 @@ const DEFAULT_ROUTINES = [
   mkRoutine("Work on thesis"),
   mkRoutine("Have a healthy dinner"),
   mkRoutine("Read before bed"),
+  mkRoutine("Walking"),
+  mkRoutine("Chores"),
   ...WORKOUTS_V2,
 ];
 
@@ -244,20 +246,34 @@ const ensureWorkouts = (state) => {
   };
 };
 
+const ensureHabitsV3 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.habitsV3) return state;
+  const existing = new Set(state.tasks.map((t) => t.title));
+  const additions = ["Walking", "Chores"]
+    .filter((t) => !existing.has(t))
+    .map((t) => mkRoutine(t));
+  return {
+    ...state,
+    tasks: [...state.tasks, ...additions],
+    meta: { ...(state.meta || {}), habitsV3: true },
+  };
+};
+
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))));
+    if (raw) return ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true },
     };
   } catch {
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true },
     };
   }
 };
