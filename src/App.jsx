@@ -1,5 +1,7 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { setDoc, onSnapshot } from "firebase/firestore";
+import { plannerDoc } from "./firebase";
 import {
   Calendar as CalendarIcon,
   CheckSquare,
@@ -332,16 +334,42 @@ export default function App() {
     view: "month", // 'month' | 'week' | 'day'
   });
   const [showModal, setShowModal] = useState(false);
+  const skipNextSave = useRef(false);
 
-  // (Optional) dark toggle
+  // dark toggle
   useEffect(() => {
     document.documentElement.classList.toggle("dark", state.theme === "dark");
   }, [state.theme]);
 
-  // persist
+  // persist locally + sync to Firestore (debounced)
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDoc(plannerDoc, { state: JSON.stringify(state) }).catch(console.error);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [state]);
+
+  // listen for changes from other devices
+  useEffect(() => {
+    const unsub = onSnapshot(plannerDoc, (snap) => {
+      if (!snap.exists()) return;
+      const json = snap.data()?.state;
+      if (!json) return;
+      try {
+        const parsed = JSON.parse(json);
+        if (parsed) {
+          skipNextSave.current = true;
+          setState(parsed);
+        }
+      } catch {}
+    });
+    return () => unsub();
+  }, []);
 
   const addTask = (payload) =>
     setState((s) => ({ ...s, tasks: [...s.tasks, payload] }));
