@@ -594,15 +594,6 @@ export default function App() {
         />
       )}
 
-      {/* Mobile FAB */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="sm:hidden fixed right-4 bottom-20 z-20 w-14 h-14 rounded-full bg-neutral-900 text-white shadow-lg flex items-center justify-center"
-        aria-label="Add Task"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
-
       {/* Mobile bottom nav */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20 border-t bg-white/90 dark:bg-black/70 backdrop-blur">
         <div className="grid grid-cols-2 gap-2 p-2">
@@ -1011,9 +1002,13 @@ function TaskRow({
   return (
     <li className="p-2 sm:p-3">
       <div className="flex items-start gap-2 sm:gap-3">
-        <button onClick={() => setOpen((o) => !o)} className="mt-1">
-          {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </button>
+        {(task.subtasks || []).length > 0 ? (
+          <button onClick={() => setOpen((o) => !o)} className="mt-1">
+            {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+        ) : (
+          <span className="mt-1 w-4 h-4 inline-block" />
+        )}
         <input
           type="checkbox"
           className="mt-1 w-4 h-4"
@@ -1096,7 +1091,7 @@ function TaskRow({
               ) : (
                 <button
                   onClick={() => setAdding(true)}
-                  className="mt-2 text-sm inline-flex items-center gap-1 px-2 py-1 rounded-xl border"
+                  className="mt-2 text-sm hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-xl border"
                 >
                   <Plus className="w-3 h-3" /> Add subtask
                 </button>
@@ -1105,7 +1100,7 @@ function TaskRow({
           )}
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex flex-col">
+          <div className="hidden sm:flex flex-col">
             <button
               className={`p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
                 canMoveUp ? "" : "opacity-40 cursor-not-allowed"
@@ -1218,9 +1213,13 @@ function SubtaskRow({ parent, task, updateTask, deleteTask, selectedISO }) {
   return (
     <li>
       <div className="flex items-start gap-2 sm:gap-3">
-        <button onClick={() => setOpen((o) => !o)} className="mt-0.5">
-          {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-        </button>
+        {(task.subtasks || []).length > 0 ? (
+          <button onClick={() => setOpen((o) => !o)} className="mt-0.5">
+            {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+        ) : (
+          <span className="mt-0.5 w-3 h-3 inline-block" />
+        )}
         <input type="checkbox" className="mt-1 w-4 h-4" checked={checked} onChange={toggle} />
         <div className="grow">
           {edit ? (
@@ -1288,7 +1287,7 @@ function SubtaskRow({ parent, task, updateTask, deleteTask, selectedISO }) {
               ) : (
                 <button
                   onClick={() => setAdding(true)}
-                  className="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-xl border"
+                  className="mt-2 text-xs hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-xl border"
                 >
                   <Plus className="w-3 h-3" /> Add subtask
                 </button>
