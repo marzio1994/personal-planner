@@ -757,44 +757,19 @@ function AddTaskModal({ onClose, onCreate }) {
 /* ================== To-Do ================== */
 
 function RoutineTodo({ tasks, addSubtask, updateTask, deleteTask, moveTaskInList }) {
-  // Selected day filter: -1 = All, 0..6 = Sun..Sat (default today)
-  const [selectedDay, setSelectedDay] = useState(new Date().getDay());
-  const [anchor] = useState(new Date()); // current week anchor
-  const selectedISO = useMemo(() => {
-    if (selectedDay === -1) return todayISO();
-    const start = startOfWeek(anchor);
-    return fmtISO(addDays(start, selectedDay));
-  }, [anchor, selectedDay]);
+  const today = new Date().getDay();
+  const selectedISO = todayISO();
 
-  const filtered = useMemo(() => {
-    if (selectedDay === -1) return tasks;
-    return tasks.filter((t) => (t.daysOfWeek || []).includes(selectedDay));
-  }, [tasks, selectedDay]);
+  const filtered = useMemo(
+    () => tasks.filter((t) => (t.daysOfWeek || []).includes(today)),
+    [tasks, today]
+  );
 
   return (
     <div className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Layers className="w-5 h-5" /> Routine Tasks
-        </h2>
-
-        {/* Day chips: All + Sun..Sat */}
-        <div className="flex gap-2 overflow-x-auto">
-          {["All", ...dayLabels].map((label, i) => (
-            <button
-              key={label}
-              onClick={() => setSelectedDay(i - 1)} // -1 = All, 0..6 = Sun..Sat
-              className={`shrink-0 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border ${
-                selectedDay === i - 1
-                  ? "bg-neutral-200 dark:bg-neutral-800"
-                  : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Layers className="w-5 h-5" /> Routine Tasks
+      </h2>
 
       <TaskList
         tasks={filtered}
@@ -807,9 +782,7 @@ function RoutineTodo({ tasks, addSubtask, updateTask, deleteTask, moveTaskInList
 
       {filtered.length === 0 && (
         <div className="rounded-2xl border p-6 text-center text-neutral-500 dark:text-neutral-400">
-          {selectedDay === -1
-            ? "No routines."
-            : `No routines scheduled for ${dayLabels[selectedDay]}.`}
+          No routines scheduled for today.
         </div>
       )}
     </div>
