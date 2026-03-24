@@ -521,7 +521,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-3 sm:p-4 pb-20 sm:pb-4">
+      <main className="max-w-6xl mx-auto p-3 sm:p-4">
         {route.page === "todo" ? (
           route.sub === "routine" ? (
             <RoutineTodo
@@ -557,31 +557,6 @@ export default function App() {
         />
       )}
 
-      {/* Mobile bottom nav */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20 border-t bg-white/90 dark:bg-black/70 backdrop-blur">
-        <div className="grid grid-cols-2 gap-2 p-2">
-          <button
-            onClick={() => setRoute({ page: "todo", sub: route.sub, view: route.view })}
-            className={`py-2 rounded-xl text-sm flex items-center justify-center gap-2 border ${
-              route.page === "todo"
-                ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white"
-                : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            }`}
-          >
-            <ListTodo className="w-4 h-4" /> To-Do
-          </button>
-          <button
-            onClick={() => setRoute({ page: "calendar", sub: route.sub, view: route.view })}
-            className={`py-2 rounded-xl text-sm flex items-center justify-center gap-2 border ${
-              route.page === "calendar"
-                ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white"
-                : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            }`}
-          >
-            <CalendarIcon className="w-4 h-4" /> Calendar
-          </button>
-        </div>
-      </nav>
     </div>
   );
 }
