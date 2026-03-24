@@ -1284,56 +1284,51 @@ function OneTimeCalendar({ tasks, view }) {
       {view === "month" && (
         <MonthGrid
           days={monthDays}
-          renderDay={(iso) => (
-            <div className="space-y-1">
-              {(itemsByDate[iso] || []).map((t) => (
-                <div
-                  key={t.id}
-                  className={`text-xs px-2 py-1 rounded-2xl border flex items-center gap-1 ${
-                    t.completed ? "opacity-60 line-through" : ""
-                  }`}
-                >
-                  <span className="truncate">{t.title}</span>
-                  {t.completed ? <CheckCircle2 className="w-3 h-3" /> : null}
-                </div>
-              ))}
-            </div>
-          )}
+          renderDay={(iso) => {
+            const items = itemsByDate[iso] || [];
+            if (!items.length) return null;
+            const done = items.filter((t) => t.completed).length;
+            const allDone = done === items.length;
+            return (
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
+                allDone ? "bg-emerald-100 text-emerald-700" :
+                done > 0 ? "bg-amber-100 text-amber-700" :
+                "bg-neutral-100 text-neutral-500"
+              }`}>
+                {items.length === 1 ? items[0].title.slice(0, 8) : `${done}/${items.length}`}
+              </span>
+            );
+          }}
         />
       )}
 
       {view === "week" && (
         <WeekGrid
           days={weekDays}
-          renderDay={(iso) => (
-            <div className="space-y-1">
-              {(itemsByDate[iso] || []).map((t) => (
-                <div
-                  key={t.id}
-                  className={`text-xs px-2 py-1 rounded-2xl border flex items-center gap-1 ${
-                    t.completed ? "opacity-60 line-through" : ""
-                  }`}
-                >
-                  <span className="truncate">{t.title}</span>
-                  {t.completed ? <CheckCircle2 className="w-3 h-3" /> : null}
-                </div>
-              ))}
-            </div>
-          )}
+          renderDay={(iso) => {
+            const items = itemsByDate[iso] || [];
+            return (
+              <div className="space-y-0.5 mt-1">
+                {items.map((t) => (
+                  <div key={t.id} className="flex items-center gap-1 min-w-0">
+                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${t.completed ? "bg-emerald-500" : "bg-neutral-300"}`} />
+                    <span className={`text-[10px] truncate leading-tight ${t.completed ? "text-neutral-400" : ""}`}>{t.title}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          }}
         />
       )}
 
       {view === "day" && (
         <DayCard iso={dayISO} title="Deadlines today">
           {(itemsByDate[dayISO] || []).map((t) => (
-            <div
-              key={t.id}
-              className={`text-sm px-2 py-1 rounded-2xl border flex items-center gap-1 ${
-                t.completed ? "opacity-60 line-through" : ""
-              }`}
-            >
-              <span className="truncate">{t.title}</span>
-              {t.completed ? <CheckCircle2 className="w-4 h-4" /> : null}
+            <div key={t.id} className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl border ${
+              t.completed ? "bg-emerald-50 border-emerald-200" : "bg-white border-neutral-200"
+            }`}>
+              <span className={`text-sm ${t.completed ? "line-through text-neutral-400" : ""}`}>{t.title}</span>
+              {t.completed && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
             </div>
           ))}
           {!(itemsByDate[dayISO] || []).length && (
@@ -1358,62 +1353,86 @@ function RoutineCalendar({ tasks, view }) {
         : addDays(d, view === "week" ? delta * 7 : delta)
     );
 
-  const hasParentDone = (t, iso) =>
-    !!(t.history || []).find((h) => h.date === iso && h.completed);
-  const pctFor = (t, iso) => percentForDate(t, iso); // null if no subtasks
-
-  // Show on calendar only when there's activity:
-  // - with subtasks: only when % > 0 (show % chip)
-  // - without subtasks: only when parent is checked
-  const displayForDate = (t, iso) => {
-    const pct = pctFor(t, iso);
+  const getDOW = (iso) => new Date(iso + "T12:00:00").getDay();
+  const scheduledFor = (iso) =>
+    tasks.filter((t) => (t.daysOfWeek || []).includes(getDOW(iso)));
+  const isDone = (t, iso) => {
+    const pct = percentForDate(t, iso);
     if (pct !== null) return pct > 0;
-    return hasParentDone(t, iso);
+    return !!(t.history || []).find((h) => h.date === iso && h.completed);
   };
 
-  const DayRender = (iso) => (
-    <div className="space-y-1">
-      {tasks.filter((t) => displayForDate(t, iso)).map((t) => {
-        const pct = pctFor(t, iso);
-        const full = pct === 100;
-        return (
-          <div
-            key={t.id}
-            className={`text-xs px-2 py-1 rounded-2xl border flex items-center justify-between gap-2 ${
-              full
-                ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700"
-                : "bg-white/90 dark:bg-neutral-900"
-            }`}
-          >
-            <span className="truncate">{t.title}</span>
-            {pct !== null && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full border bg-neutral-50 dark:bg-neutral-800">
-                {pct}%
+  // Month: compact "done/total" pill
+  const MonthDayRender = (iso) => {
+    const scheduled = scheduledFor(iso);
+    if (!scheduled.length) return null;
+    const done = scheduled.filter((t) => isDone(t, iso)).length;
+    const allDone = done === scheduled.length && done > 0;
+    const someDone = done > 0 && !allDone;
+    return (
+      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
+        allDone ? "bg-emerald-100 text-emerald-700" :
+        someDone ? "bg-amber-100 text-amber-700" :
+        "text-neutral-400"
+      }`}>
+        {done}/{scheduled.length}
+      </span>
+    );
+  };
+
+  // Week: dot + truncated name, max 6 + "+N"
+  const WeekDayRender = (iso) => {
+    const scheduled = scheduledFor(iso);
+    const shown = scheduled.slice(0, 6);
+    const rest = scheduled.length - 6;
+    return (
+      <div className="space-y-0.5 mt-1">
+        {shown.map((t) => {
+          const done = isDone(t, iso);
+          return (
+            <div key={t.id} className="flex items-center gap-1 min-w-0">
+              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${done ? "bg-emerald-500" : "bg-neutral-300"}`} />
+              <span className={`text-[10px] truncate leading-tight ${done ? "text-neutral-400" : ""}`}>
+                {t.title}
               </span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+            </div>
+          );
+        })}
+        {rest > 0 && <div className="text-[10px] text-neutral-400">+{rest}</div>}
+      </div>
+    );
+  };
+
+  // Day: full list with % progress
+  const DayFullRender = (iso) => {
+    const scheduled = scheduledFor(iso);
+    return (
+      <div className="space-y-2">
+        {scheduled.map((t) => {
+          const pct = percentForDate(t, iso);
+          const done = isDone(t, iso);
+          return (
+            <div key={t.id} className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl border ${
+              done ? "bg-emerald-50 border-emerald-200" : "bg-white border-neutral-200"
+            }`}>
+              <span className={`text-sm ${done && !pct ? "line-through text-neutral-400" : ""}`}>{t.title}</span>
+              {pct !== null && (
+                <span className="text-xs px-2 py-0.5 rounded-full border bg-neutral-50 shrink-0">{pct}%</span>
+              )}
+            </div>
+          );
+        })}
+        {!scheduled.length && <div className="text-sm text-neutral-500">No routines scheduled.</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
-      <CalHeader
-        refDate={ref}
-        view={view}
-        onPrev={() => shift(-1)}
-        onNext={() => shift(1)}
-        title="Routine tasks (only when completed / with % if subtasks)"
-      />
-
-      {view === "month" && <MonthGrid days={monthDays} renderDay={DayRender} />}
-      {view === "week" && <WeekGrid days={weekDays} renderDay={DayRender} />}
-      {view === "day" && (
-        <DayCard iso={dayISO} title="Today’s routine completions / progress">
-          {DayRender(dayISO)}
-        </DayCard>
-      )}
+      <CalHeader refDate={ref} view={view} onPrev={() => shift(-1)} onNext={() => shift(1)} title="Routine tasks" />
+      {view === "month" && <MonthGrid days={monthDays} renderDay={MonthDayRender} />}
+      {view === "week" && <WeekGrid days={weekDays} renderDay={WeekDayRender} />}
+      {view === "day" && <DayCard iso={dayISO} title="Routines">{DayFullRender(dayISO)}</DayCard>}
     </div>
   );
 }
@@ -1447,25 +1466,25 @@ function CalHeader({ refDate, view, onPrev, onNext, title }) {
 
 function MonthGrid({ days, renderDay }) {
   return (
-    <div className="mt-2 overflow-x-auto">
-      <div className="grid grid-cols-7 gap-2 min-w-[640px]">
+    <div className="mt-2">
+      <div className="grid grid-cols-7 gap-1">
         {dayLabels.map((d) => (
-          <div key={d} className="text-[10px] sm:text-xs text-center text-neutral-500 dark:text-neutral-400">
-            {d}
+          <div key={d} className="text-[10px] text-center text-neutral-400 pb-1">
+            {d.slice(0, 1)}
           </div>
         ))}
         {days.map(({ iso, inMonth }) => (
           <div
             key={iso}
-            className={`min-h-[96px] sm:min-h-[120px] p-1.5 sm:p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition ${
-              inMonth ? "" : "opacity-40"
-            }`}
+            className={`min-h-[48px] sm:min-h-[72px] p-1 rounded-xl border bg-white/90 dark:bg-neutral-900 transition ${
+              inMonth ? "" : "opacity-30"
+            } ${iso === todayISO() ? "border-neutral-400" : ""}`}
           >
             <div
-              className={`text-[10px] sm:text-xs mb-1 font-medium inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full ${
+              className={`text-[10px] font-medium inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full mb-0.5 ${
                 iso === todayISO()
-                  ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
-                  : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                  ? "bg-neutral-900 text-white"
+                  : "text-neutral-600 dark:text-neutral-300"
               }`}
             >
               {iso.slice(8, 10)}
@@ -1480,25 +1499,32 @@ function MonthGrid({ days, renderDay }) {
 
 function WeekGrid({ days, renderDay }) {
   return (
-    <div className="mt-2 overflow-x-auto">
-      <div className="grid grid-cols-7 gap-2 min-w-[640px]">
-        {days.map((iso) => (
-          <div
-            key={iso}
-            className="min-h-[120px] sm:min-h-[160px] p-1.5 sm:p-2 rounded-2xl border bg-white/90 dark:bg-neutral-900 shadow-sm hover:shadow-md transition"
-          >
+    <div className="mt-2">
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((iso) => {
+          const isToday = iso === todayISO();
+          const d = new Date(iso + "T12:00:00");
+          return (
             <div
-              className={`text-[10px] sm:text-xs mb-1 font-medium inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full ${
-                iso === todayISO()
-                  ? "bg-neutral-900 text-white ring-2 ring-neutral-900/30 dark:bg-white dark:text-black dark:ring-white/30"
-                  : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+              key={iso}
+              className={`min-h-[120px] sm:min-h-[160px] p-1 sm:p-2 rounded-xl border bg-white/90 dark:bg-neutral-900 transition ${
+                isToday ? "border-neutral-400" : ""
               }`}
             >
-              {new Date(iso).toLocaleDateString(undefined, { weekday: "short" })}
+              <div className="flex flex-col items-center mb-1">
+                <span className="text-[9px] text-neutral-400 uppercase">
+                  {d.toLocaleDateString(undefined, { weekday: "short" })}
+                </span>
+                <span className={`text-[10px] sm:text-xs font-semibold inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full ${
+                  isToday ? "bg-neutral-900 text-white" : "text-neutral-600 dark:text-neutral-300"
+                }`}>
+                  {iso.slice(8, 10)}
+                </span>
+              </div>
+              {renderDay(iso)}
             </div>
-            {renderDay(iso)}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
