@@ -22,8 +22,6 @@ import {
   LayoutGrid,
   CalendarDays,
   CalendarRange,
-  Upload,
-  Download,
 } from "lucide-react";
 
 /* =========================================================
@@ -422,40 +420,6 @@ export default function App() {
     [state.tasks]
   );
 
-  // --- Import / Export handlers ---
-  const exportData = () => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "planner_backup.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importData = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const parsed = JSON.parse(evt.target.result);
-        if (parsed && parsed.tasks) {
-          setState(parsed);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-          alert("✅ Planner data imported successfully!");
-        } else {
-          alert("⚠️ Invalid file format.");
-        }
-      } catch (err) {
-        alert("⚠️ Error reading file: " + err.message);
-      }
-    };
-    reader.readAsText(file);
-  };
-
   return (
     <div className="min-h-screen font-sans bg-gradient-to-br from-neutral-50 via-white to-slate-50 text-neutral-900 dark:from-neutral-900 dark:via-neutral-950 dark:to-black dark:text-neutral-100">
       <header className="sticky top-0 z-10 bg-white/70 dark:bg-black/40 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
@@ -554,30 +518,6 @@ export default function App() {
                 </button>
               </div>
             )}
-
-            {/* Import / Export */}
-            <button
-              onClick={exportData}
-              className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              title="Export data"
-            >
-              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
-            </button>
-
-            <label
-              htmlFor="importFile"
-              className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              title="Import data"
-            >
-              <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import</span>
-              <input
-                id="importFile"
-                type="file"
-                accept=".json"
-                onChange={importData}
-                className="hidden"
-              />
-            </label>
 
             {/* Theme toggle */}
             <button
