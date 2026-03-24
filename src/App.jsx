@@ -17,8 +17,6 @@ import {
   CheckCircle2,
   X,
   Edit3,
-  Sun,
-  Moon,
   LayoutGrid,
   CalendarDays,
   CalendarRange,
@@ -519,25 +517,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Theme toggle */}
-            <button
-              onClick={() =>
-                setState((s) => {
-                  const next = s.theme === "dark" ? "light" : "dark";
-                  const ns = { ...s, theme: next };
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(ns));
-                  document.documentElement.classList.toggle("dark", next === "dark");
-                  return ns;
-                })
-              }
-              className="ml-0 sm:ml-2 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded-2xl border flex items-center gap-2 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              title="Toggle dark mode"
-            >
-              {state.theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              <span className="hidden sm:inline">
-                {state.theme === "dark" ? "Light" : "Dark"}
-              </span>
-            </button>
           </div>
         </div>
       </header>
