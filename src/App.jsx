@@ -388,8 +388,9 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
+          const migrated = ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))));
           skipNextSave.current = true;
-          setState(parsed);
+          setState(migrated);
         }
       } catch {}
     });
