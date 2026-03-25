@@ -65,6 +65,17 @@ const endOfWeek = (d) => addDays(startOfWeek(d), 6);
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Extract the most meaningful word from a task title for compact display
+const SKIP_WORDS = new Set([
+  "have","a","an","the","on","in","at","to","for","of","with",
+  "before","after","up","healthy","practice","study","work","read",
+]);
+const shortTitle = (title) => {
+  const words = title.split(" ");
+  const key = words.find((w) => !SKIP_WORDS.has(w.toLowerCase())) || words[0];
+  return key.charAt(0).toUpperCase() + key.slice(1);
+};
+
 // --- Storage / initial state ---
 const STORAGE_KEY = "personal_tasks_calendar_app_v1";
 const DAILY_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -1330,7 +1341,7 @@ function OneTimeCalendar({ tasks, view }) {
                 {items.map((t) => (
                   <div key={t.id} className="flex items-center gap-1 min-w-0">
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${t.completed ? "bg-emerald-500" : "bg-neutral-300"}`} />
-                    <span className={`text-[10px] truncate leading-tight ${t.completed ? "text-neutral-400" : ""}`}>{t.title}</span>
+                    <span className={`text-[10px] leading-tight whitespace-nowrap ${t.completed ? "text-neutral-400" : ""}`}>{shortTitle(t.title)}</span>
                   </div>
                 ))}
               </div>
@@ -1398,25 +1409,22 @@ function RoutineCalendar({ tasks, view }) {
     );
   };
 
-  // Week: dot + truncated name, max 6 + "+N"
+  // Week: dot + short label, all tasks shown
   const WeekDayRender = (iso) => {
     const scheduled = scheduledFor(iso);
-    const shown = scheduled.slice(0, 6);
-    const rest = scheduled.length - 6;
     return (
       <div className="space-y-0.5 mt-1">
-        {shown.map((t) => {
+        {scheduled.map((t) => {
           const done = isDone(t, iso);
           return (
             <div key={t.id} className="flex items-center gap-1 min-w-0">
               <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${done ? "bg-emerald-500" : "bg-neutral-300"}`} />
-              <span className={`text-[10px] truncate leading-tight ${done ? "text-neutral-400" : ""}`}>
-                {t.title}
+              <span className={`text-[10px] leading-tight whitespace-nowrap ${done ? "text-neutral-400" : ""}`}>
+                {shortTitle(t.title)}
               </span>
             </div>
           );
         })}
-        {rest > 0 && <div className="text-[10px] text-neutral-400">+{rest}</div>}
       </div>
     );
   };
@@ -1525,7 +1533,7 @@ function WeekGrid({ days, renderDay }) {
           return (
             <div
               key={iso}
-              className={`min-h-[120px] sm:min-h-[160px] p-1 sm:p-2 rounded-xl border bg-white/90 dark:bg-neutral-900 transition ${
+              className={`p-1 sm:p-2 rounded-xl border bg-white/90 dark:bg-neutral-900 transition ${
                 isToday ? "border-neutral-400" : ""
               }`}
             >
