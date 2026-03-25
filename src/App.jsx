@@ -102,10 +102,11 @@ const MOBILITY_V1 = mkRoutine("Mobility", [
   mkSub("90/90"),
   mkSub("Hip airplane"),
   mkSub("Calf raises"),
-  mkSub("Sumo squat"),
+  mkSub("Horse squat"),
   mkSub("Hamstrings"),
   mkSub("Soleus calf raises"),
   mkSub("Pan cakes"),
+  mkSub("Sumo squat"),
   mkSub("Tibialis posterior"),
   mkSub("Tibialis anterior"),
   mkSub("Slow walk"),
@@ -258,20 +259,37 @@ const ensureHabitsV3 = (state) => {
   };
 };
 
+const ensureMobilityV2 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.mobilityV2) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Mobility") return t;
+    const subs = t.subtasks.map((s) =>
+      s.title === "Sumo squat" ? { ...s, title: "Horse squat" } : s
+    );
+    const pancakeIdx = subs.findIndex((s) => s.title === "Pan cakes");
+    if (pancakeIdx >= 0) {
+      subs.splice(pancakeIdx + 1, 0, mkSub("Sumo squat"));
+    }
+    return { ...t, subtasks: subs };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), mobilityV2: true } };
+};
+
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))));
+    if (raw) return ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true, mobilityV2: true },
     };
   } catch {
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
-      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true },
+      meta: { workoutPlanV2: true, workoutPlanV3: true, habitsV1: true, habitsV2: true, habitsV3: true, mobilityV2: true },
     };
   }
 };
