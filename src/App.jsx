@@ -432,6 +432,8 @@ const removeTaskById = (tasks, id) =>
     .filter((t) => t.id !== id)
     .map((t) => ({ ...t, subtasks: removeTaskById(t.subtasks || [], id) }));
 
+const weekStartISO = () => toLocalISO(startOfWeek(new Date()));
+
 // --- App ---
 export default function App() {
   const [state, setState] = useState(loadState());
@@ -460,6 +462,19 @@ export default function App() {
     }, 1000);
     return () => clearTimeout(timer);
   }, [state]);
+
+  // weekly cleanup: delete completed one-time tasks once per week
+  useEffect(() => {
+    const currentWeek = weekStartISO();
+    setState((s) => {
+      if (s.meta?.weeklyCleanup === currentWeek) return s;
+      return {
+        ...s,
+        tasks: s.tasks.filter((t) => !(t.type === "onetime" && t.completed)),
+        meta: { ...(s.meta || {}), weeklyCleanup: currentWeek },
+      };
+    });
+  }, []);
 
   // listen for changes from other devices
   useEffect(() => {
