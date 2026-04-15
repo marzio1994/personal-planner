@@ -357,6 +357,67 @@ const PAPER_REVISION_TASKS_V1 = [
   },
 ];
 
+const ensureRoutinesV4 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.routinesV4) return state;
+
+  const toRemoveFromMobility = new Set(["Calf raises", "Horse squat", "Hamstrings"]);
+
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title === "Practice French") {
+      if ((t.subtasks || []).some((s) => s.title === "Watch TV")) return t;
+      return { ...t, subtasks: [...(t.subtasks || []), mkSub("Watch TV")] };
+    }
+    if (t.title === "Study chess") {
+      let subs = (t.subtasks || []).filter((s) => s.title !== "Pawn structure");
+      if (!subs.some((s) => s.title === "Video")) subs = [...subs, mkSub("Video")];
+      if (!subs.some((s) => s.title === "Book")) subs = [...subs, mkSub("Book")];
+      return { ...t, subtasks: subs };
+    }
+    if (t.title === "Study physics" || t.title === "Study STEM") {
+      let subs = [...(t.subtasks || [])];
+      if (!subs.some((s) => s.title === "Brilliant")) subs = [...subs, mkSub("Brilliant")];
+      if (!subs.some((s) => s.title === "Susskind Classical Mechanics")) subs = [...subs, mkSub("Susskind Classical Mechanics")];
+      return { ...t, title: "Study STEM", subtasks: subs };
+    }
+    if (t.title === "Walking") {
+      let subs = [...(t.subtasks || [])];
+      if (!subs.some((s) => s.title === "Tapis roulant")) subs = [...subs, mkSub("Tapis roulant")];
+      if (!subs.some((s) => s.title === "Outside")) subs = [...subs, mkSub("Outside")];
+      return { ...t, subtasks: subs };
+    }
+    if (t.title === "Chores") {
+      const existing = new Set((t.subtasks || []).map((s) => s.title));
+      const toAdd = ["Grocery", "Laundry", "Dusting", "Mopping", "Dishes", "Garbage", "Tidy up", "Bathroom"]
+        .filter((s) => !existing.has(s))
+        .map((s) => mkSub(s));
+      return { ...t, subtasks: [...(t.subtasks || []), ...toAdd] };
+    }
+    if (t.title === "Mobility") {
+      return { ...t, subtasks: (t.subtasks || []).filter((s) => !toRemoveFromMobility.has(s.title)) };
+    }
+    if (t.title === "Workout") {
+      const existing = new Set((t.subtasks || []).map((s) => s.title));
+      const toAdd = ["Calf raises", "Horse squat", "Hamstrings"]
+        .filter((s) => !existing.has(s))
+        .map((s) => mkSub(s));
+      return { ...t, subtasks: [...(t.subtasks || []), ...toAdd] };
+    }
+    return t;
+  });
+
+  const hasDontDo = nextTasks.some((t) => t.title === "Don't Do");
+  const finalTasks = hasDontDo
+    ? nextTasks
+    : [...nextTasks, mkRoutine("Don't Do", [mkSub("Don't extend Instagram time limit")])];
+
+  return {
+    ...state,
+    tasks: finalTasks,
+    meta: { ...(state.meta || {}), routinesV4: true },
+  };
+};
+
 const ensurePaperRevisionV1 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.paperRevisionV1) return state;
@@ -372,7 +433,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))));
+    if (raw) return ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -485,7 +546,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))));
+          const migrated = ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))));
           skipNextSave.current = true;
           setState(migrated);
         }
