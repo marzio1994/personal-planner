@@ -112,9 +112,6 @@ const MOBILITY_V1 = mkRoutine("Mobility", [
   mkSub("Frog pose 2"),
   mkSub("90/90"),
   mkSub("Hip airplane"),
-  mkSub("Calf raises"),
-  mkSub("Horse squat"),
-  mkSub("Hamstrings"),
   mkSub("Soleus calf raises"),
   mkSub("Pan cakes"),
   mkSub("Sumo squat"),
@@ -140,6 +137,9 @@ const WORKOUT_V1 = mkRoutine("Workout", [
   mkSub("Cossack squat"),
   mkSub("Biceps"),
   mkSub("Triceps"),
+  mkSub("Calf raises"),
+  mkSub("Horse squat"),
+  mkSub("Hamstrings"),
 ]);
 
 const WORKOUTS_V2 = [MOBILITY_V1, WORKOUT_V1];
@@ -153,21 +153,41 @@ const DEFAULT_ROUTINES = [
     mkSub("Book"),
     mkSub("Song"),
     mkSub("Introduction"),
+    mkSub("Watch TV"),
   ]),
   mkRoutine("Have a healthy lunch"),
   mkRoutine("Study chess", [
     mkSub("10 puzzles"),
     mkSub("Game + analysis"),
     mkSub("Vision"),
-    mkSub("Pawn structure"),
+    mkSub("Video"),
+    mkSub("Book"),
   ]),
-  mkRoutine("Study physics"),
+  mkRoutine("Study STEM", [
+    mkSub("Brilliant"),
+    mkSub("Susskind Classical Mechanics"),
+  ]),
   mkRoutine("Work on thesis"),
   mkRoutine("Have a healthy dinner"),
   mkRoutine("Read before bed"),
-  mkRoutine("Walking"),
-  mkRoutine("Chores"),
+  mkRoutine("Walking", [
+    mkSub("Tapis roulant"),
+    mkSub("Outside"),
+  ]),
+  mkRoutine("Chores", [
+    mkSub("Grocery"),
+    mkSub("Laundry"),
+    mkSub("Dusting"),
+    mkSub("Mopping"),
+    mkSub("Dishes"),
+    mkSub("Garbage"),
+    mkSub("Tidy up"),
+    mkSub("Bathroom"),
+  ]),
   ...WORKOUTS_V2,
+  mkRoutine("Don't Do", [
+    mkSub("Don't extend Instagram time limit"),
+  ]),
 ];
 
 const DAILY_HABITS = [
@@ -176,7 +196,7 @@ const DAILY_HABITS = [
   "Practice French",
   "Have a healthy lunch",
   "Study chess",
-  "Study physics",
+  "Study STEM",
   "Work on thesis",
   "Have a healthy dinner",
   "Read before bed",
@@ -287,10 +307,72 @@ const ensureMobilityV2 = (state) => {
   return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), mobilityV2: true } };
 };
 
+const PAPER_REVISION_TASKS_V1 = [
+  {
+    id: uid(),
+    title: "Run QM water shell test",
+    type: "onetime",
+    eisenhower: "UI",
+    deadline: "2026-04-09",
+    subtasks: [
+      { id: uid(), title: "Select representative snapshots", type: "onetime", subtasks: [], completed: false },
+      { id: uid(), title: "Run palmatine + QM water calculations", type: "onetime", subtasks: [], completed: false },
+      { id: uid(), title: "Compare CT character vs electrostatic embedding", type: "onetime", subtasks: [], completed: false },
+    ],
+    completed: false,
+  },
+  {
+    id: uid(),
+    title: "Add QM/MM boundary description to manuscript",
+    type: "onetime",
+    eisenhower: "UI",
+    deadline: "2026-04-05",
+    subtasks: [
+      { id: uid(), title: "Describe link atom placement (sugar-nucleobase bond)", type: "onetime", subtasks: [], completed: false },
+    ],
+    completed: false,
+  },
+  {
+    id: uid(),
+    title: "Describe snapshot selection procedure",
+    type: "onetime",
+    eisenhower: "UI",
+    deadline: "2026-04-05",
+    subtasks: [
+      { id: uid(), title: "Justify statistical independence (autocorrelation / stride)", type: "onetime", subtasks: [], completed: false },
+    ],
+    completed: false,
+  },
+  {
+    id: uid(),
+    title: "Add NTOs for S3 and S4 to SI",
+    type: "onetime",
+    eisenhower: "NUI",
+    deadline: "2026-04-09",
+    subtasks: [
+      { id: uid(), title: "Generate NTO plots for S3 and S4 (AGTC and AATT)", type: "onetime", subtasks: [], completed: false },
+      { id: uid(), title: "Add figures to SI and reference from main text", type: "onetime", subtasks: [], completed: false },
+    ],
+    completed: false,
+  },
+];
+
+const ensurePaperRevisionV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.paperRevisionV1) return state;
+  const existing = new Set(state.tasks.map((t) => t.title));
+  const additions = PAPER_REVISION_TASKS_V1.filter((t) => !existing.has(t.title));
+  return {
+    ...state,
+    tasks: [...state.tasks, ...additions],
+    meta: { ...(state.meta || {}), paperRevisionV1: true },
+  };
+};
+
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))));
+    if (raw) return ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -388,7 +470,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))));
+          const migrated = ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))));
           skipNextSave.current = true;
           setState(migrated);
         }
