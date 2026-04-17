@@ -140,6 +140,7 @@ const WORKOUT_V1 = mkRoutine("Workout", [
   mkSub("Calf raises"),
   mkSub("Horse squat"),
   mkSub("Hamstrings"),
+  mkSub("Pogo"),
 ]);
 
 const WORKOUTS_V2 = [MOBILITY_V1, WORKOUT_V1];
@@ -398,7 +399,7 @@ const ensureRoutinesV4 = (state) => {
     }
     if (t.title === "Workout") {
       const existing = new Set((t.subtasks || []).map((s) => s.title));
-      const toAdd = ["Calf raises", "Horse squat", "Hamstrings"]
+      const toAdd = ["Calf raises", "Horse squat", "Hamstrings", "Pogo"]
         .filter((s) => !existing.has(s))
         .map((s) => mkSub(s));
       return { ...t, subtasks: [...(t.subtasks || []), ...toAdd] };
@@ -418,6 +419,17 @@ const ensureRoutinesV4 = (state) => {
   };
 };
 
+const ensureWorkoutPogoV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.workoutPogoV1) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Workout") return t;
+    if ((t.subtasks || []).some((s) => s.title === "Pogo")) return t;
+    return { ...t, subtasks: [...(t.subtasks || []), mkSub("Pogo")] };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), workoutPogoV1: true } };
+};
+
 const ensurePaperRevisionV1 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.paperRevisionV1) return state;
@@ -433,7 +445,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))));
+    if (raw) return ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -546,7 +558,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))));
+          const migrated = ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
