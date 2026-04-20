@@ -170,7 +170,12 @@ const DEFAULT_ROUTINES = [
   ]),
   mkRoutine("Work on thesis"),
   mkRoutine("Have a healthy dinner"),
-  mkRoutine("Read before bed"),
+  mkRoutine("Bed time Routine", [
+    mkSub("Cleaning"),
+    mkSub("Infusion"),
+    mkSub("Massage"),
+    mkSub("Read"),
+  ]),
   mkRoutine("Walking", [
     mkSub("Tapis roulant"),
     mkSub("Outside"),
@@ -202,7 +207,7 @@ const DAILY_HABITS = [
   "Study STEM",
   "Work on thesis",
   "Have a healthy dinner",
-  "Read before bed",
+  "Bed time Routine",
 ];
 
 const HABIT_DETAILS_V1 = {
@@ -421,6 +426,21 @@ const ensureRoutinesV4 = (state) => {
   };
 };
 
+const ensureBedtimeRoutineV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.bedtimeRoutineV1) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Read before bed" && t.title !== "Bed time Routine") return t;
+    let subs = [...(t.subtasks || [])];
+    if (!subs.some((s) => s.title === "Cleaning")) subs = [...subs, mkSub("Cleaning")];
+    if (!subs.some((s) => s.title === "Infusion")) subs = [...subs, mkSub("Infusion")];
+    if (!subs.some((s) => s.title === "Massage")) subs = [...subs, mkSub("Massage")];
+    if (!subs.some((s) => s.title === "Read")) subs = [...subs, mkSub("Read")];
+    return { ...t, title: "Bed time Routine", subtasks: subs };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), bedtimeRoutineV1: true } };
+};
+
 const ensureDontDoV2 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.dontDoV2) return state;
@@ -460,7 +480,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))));
+    if (raw) return ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -573,7 +593,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))));
+          const migrated = ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
