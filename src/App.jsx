@@ -186,8 +186,10 @@ const DEFAULT_ROUTINES = [
     mkSub("Bathroom"),
   ]),
   ...WORKOUTS_V2,
-  mkRoutine("Don't Do", [
+  mkRoutine("Don't Do - Do", [
     mkSub("Don't extend Instagram time limit"),
+    mkSub("Don't smoke"),
+    mkSub("Call people"),
   ]),
 ];
 
@@ -419,6 +421,19 @@ const ensureRoutinesV4 = (state) => {
   };
 };
 
+const ensureDontDoV2 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.dontDoV2) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Don't Do" && t.title !== "Don't Do - Do") return t;
+    let subs = [...(t.subtasks || [])];
+    if (!subs.some((s) => s.title === "Don't smoke")) subs = [...subs, mkSub("Don't smoke")];
+    if (!subs.some((s) => s.title === "Call people")) subs = [...subs, mkSub("Call people")];
+    return { ...t, title: "Don't Do - Do", subtasks: subs };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), dontDoV2: true } };
+};
+
 const ensureWorkoutPogoV1 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.workoutPogoV1) return state;
@@ -445,7 +460,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))));
+    if (raw) return ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -558,7 +573,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))));
+          const migrated = ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
