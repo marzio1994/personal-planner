@@ -195,6 +195,7 @@ const DEFAULT_ROUTINES = [
     mkSub("Don't extend Instagram time limit"),
     mkSub("Don't smoke"),
     mkSub("Call people"),
+    mkSub("Don't play chess"),
   ]),
 ];
 
@@ -426,6 +427,17 @@ const ensureRoutinesV4 = (state) => {
   };
 };
 
+const ensureDontPlayChessV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.dontPlayChessV1) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Don't Do - Do") return t;
+    if ((t.subtasks || []).some((s) => s.title === "Don't play chess")) return t;
+    return { ...t, subtasks: [...(t.subtasks || []), mkSub("Don't play chess")] };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), dontPlayChessV1: true } };
+};
+
 const ensureBedtimeRoutineV1 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.bedtimeRoutineV1) return state;
@@ -480,7 +492,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))))));
+    if (raw) return ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -593,7 +605,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))))));
+          const migrated = ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
