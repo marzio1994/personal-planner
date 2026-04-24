@@ -141,6 +141,7 @@ const WORKOUT_V1 = mkRoutine("Workout", [
   mkSub("Horse squat"),
   mkSub("Hamstrings"),
   mkSub("Pogo"),
+  mkSub("Push up"),
 ]);
 
 const WORKOUTS_V2 = [MOBILITY_V1, WORKOUT_V1];
@@ -427,6 +428,17 @@ const ensureRoutinesV4 = (state) => {
   };
 };
 
+const ensurePushUpV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.pushUpV1) return state;
+  const nextTasks = state.tasks.map((t) => {
+    if (t.title !== "Workout") return t;
+    if ((t.subtasks || []).some((s) => s.title === "Push up")) return t;
+    return { ...t, subtasks: [...(t.subtasks || []), mkSub("Push up")] };
+  });
+  return { ...state, tasks: nextTasks, meta: { ...(state.meta || {}), pushUpV1: true } };
+};
+
 const ensureDontPlayChessV1 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.dontPlayChessV1) return state;
@@ -492,7 +504,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))))));
+    if (raw) return ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -605,7 +617,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))))));
+          const migrated = ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
