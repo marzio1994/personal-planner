@@ -365,6 +365,24 @@ const PAPER_REVISION_TASKS_V1 = [
   },
 ];
 
+const ITALIAN_DOCS_TASKS_V1 = [
+  { id: uid(), title: "Get Italian Passport", type: "onetime", eisenhower: "NUI", deadline: "2026-12-31", subtasks: [], completed: false },
+  { id: uid(), title: "Get Italian ID Card (Carta d'Identità)", type: "onetime", eisenhower: "NUI", deadline: "2026-12-31", subtasks: [], completed: false },
+  { id: uid(), title: "Get Tessera Sanitaria", type: "onetime", eisenhower: "NUI", deadline: "2026-12-31", subtasks: [], completed: false },
+];
+
+const ensureItalianDocsV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.italianDocsV1) return state;
+  const existing = new Set(state.tasks.map((t) => t.title));
+  const additions = ITALIAN_DOCS_TASKS_V1.filter((t) => !existing.has(t.title));
+  return {
+    ...state,
+    tasks: [...state.tasks, ...additions],
+    meta: { ...(state.meta || {}), italianDocsV1: true },
+  };
+};
+
 const ensureRoutinesV4 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.routinesV4) return state;
@@ -512,7 +530,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))))))));
+    if (raw) return ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -625,7 +643,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))))))));
+          const migrated = ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
