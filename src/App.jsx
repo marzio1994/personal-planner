@@ -149,6 +149,12 @@ const WORKOUTS_V2 = [MOBILITY_V1, WORKOUT_V1];
 const DEFAULT_ROUTINES = [
   mkRoutine("Wake up early"),
   mkRoutine("Have a healthy breakfast"),
+  mkRoutine("Feet exercises", [
+    mkSub("Toe smash"),
+    mkSub("Toe splay"),
+    mkSub("Toe motions"),
+    mkSub("Base of big toe"),
+  ]),
   mkRoutine("Practice French", [
     mkSub("Review"),
     mkSub("Book"),
@@ -383,6 +389,27 @@ const ensureItalianDocsV1 = (state) => {
   };
 };
 
+const ensureFeetExercisesV1 = (state) => {
+  if (!state || !Array.isArray(state.tasks)) return state;
+  if (state.meta?.feetExercisesV1) return state;
+  const existing = new Set(state.tasks.map((t) => t.title));
+  const tasks = existing.has("Feet exercises")
+    ? state.tasks
+    : (() => {
+        const idx = state.tasks.findIndex((t) => t.title === "Have a healthy breakfast");
+        const newTask = mkRoutine("Feet exercises", [
+          mkSub("Toe smash"),
+          mkSub("Toe splay"),
+          mkSub("Toe motions"),
+          mkSub("Base of big toe"),
+        ]);
+        const copy = [...state.tasks];
+        copy.splice(idx + 1, 0, newTask);
+        return copy;
+      })();
+  return { ...state, tasks, meta: { ...(state.meta || {}), feetExercisesV1: true } };
+};
+
 const ensureRoutinesV4 = (state) => {
   if (!state || !Array.isArray(state.tasks)) return state;
   if (state.meta?.routinesV4) return state;
@@ -530,7 +557,7 @@ const ensurePaperRevisionV1 = (state) => {
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw)))))))))))))));
+    if (raw) return ensureFeetExercisesV1(ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(JSON.parse(raw))))))))))))))));
     return {
       tasks: DEFAULT_ROUTINES,
       theme: "light",
@@ -643,7 +670,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(json);
         if (parsed) {
-          const migrated = ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed))))))))))))));
+          const migrated = ensureFeetExercisesV1(ensureItalianDocsV1(ensureRemoveFrenchLessonV1(ensurePushUpV1(ensureDontPlayChessV1(ensureBedtimeRoutineV1(ensureDontDoV2(ensureWorkoutPogoV1(ensureRoutinesV4(ensurePaperRevisionV1(ensureMobilityV2(ensureHabitsV3(ensureHabitDetails(ensureHabits(ensureWorkouts(parsed)))))))))))))));
           skipNextSave.current = true;
           setState(migrated);
         }
